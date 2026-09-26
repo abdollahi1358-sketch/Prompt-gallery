@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Extract project
-        run: unzip -o prompt_gallery_full_v1.zip -d project
+        run: unzip -o prompt_gallery_full_v1.zip -d source
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -23,16 +23,29 @@ jobs:
           flutter-version: "3.35.2"
           channel: stable
 
+      - name: Create Android Flutter project
+        run: |
+          flutter create \
+            --platforms=android \
+            --org com.promptgallery \
+            mobile_build
+
+      - name: Copy app source
+        run: |
+          rm -rf mobile_build/lib
+          cp -R source/mobile/lib mobile_build/lib
+          cp source/mobile/pubspec.yaml mobile_build/pubspec.yaml
+
       - name: Install dependencies
-        working-directory: project/mobile
+        working-directory: mobile_build
         run: flutter pub get
 
       - name: Build APK
-        working-directory: project/mobile
+        working-directory: mobile_build
         run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: prompt-gallery-apk
-          path: project/mobile/build/app/outputs/flutter-apk/app-release.apk
+          path: mobile_build/build/app/outputs/flutter-apk/app-release.apk
