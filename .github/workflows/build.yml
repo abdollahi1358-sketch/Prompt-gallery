@@ -1,0 +1,38 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project
+        run: unzip -o prompt_gallery_full_v1.zip -d project
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.2"
+          channel: stable
+
+      - name: Install dependencies
+        working-directory: project/mobile
+        run: flutter pub get
+
+      - name: Build APK
+        working-directory: project/mobile
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: prompt-gallery-apk
+          path: project/mobile/build/app/outputs/flutter-apk/app-release.apk
